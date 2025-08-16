@@ -42,18 +42,19 @@ async fn process_file(path: &str) -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    if let Some(parent) = project.parent {
-        process_artifact(&parent, &mut props).await?;
-    };
-    if let Some(dependencies) = project.dependencies {
-        for dep in dependencies.dependency {
-            process_artifact(&dep, &mut props).await?;
+    if let Some(parent) = &project.parent {
+        process_artifact(&project, parent, &mut props).await?;
+    }
+    if let Some(dependencies) = &project.dependencies {
+        for dep in &dependencies.dependency {
+            process_artifact(&project, dep, &mut props).await?;
         }
     }
     Ok(())
 }
 
 async fn process_artifact(
+    project: &Project,
     dep: &Dependency,
     props: &mut HashMap<String, String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -73,14 +74,30 @@ async fn process_artifact(
     let version = match version {
         Some(v) => v,
         None => {
-            eprintln!("Нет версии у зависимости {}:{} — пропускаю", dep.group_id, dep.artifact_id);
+            eprintln!(
+                "Нет версии у зависимости {}:{} — пропускаю",
+                dep.group_id, dep.artifact_id
+            );
             return Ok(());
         }
     };
 
     let resolved_version: String = if version.starts_with("${") {
-        let key = version.trim_matches(|c| c == '$' || c == '{' || c == '}');
-        props.get(key).cloned().unwrap_or_else(|| version.clone())
+        let key: &str = version.trim_matches(|c: char| c == '$' || c == '{' || c == '}');
+        if key == "project.version" {
+            project
+                .version
+                .clone()
+                .or_else(|| {
+                    project
+                        .parent
+                        .as_ref()
+                        .and_then(|p| p.version.as_ref().and_then(|v| v.as_string()))
+                })
+                .unwrap_or_else(|| version.clone())
+        } else {
+            props.get(key).cloned().unwrap_or_else(|| version.clone())
+        }
     } else {
         version.clone()
     };

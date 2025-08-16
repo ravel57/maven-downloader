@@ -21,10 +21,10 @@ pub enum TextOrNode {
 }
 
 impl TextOrNode {
-    pub fn into_string(self) -> Option<String> {
+    pub fn as_string(&self) -> Option<String> {
         match self {
-            TextOrNode::Text(s) => Some(s),
-            TextOrNode::Node { text } => text,
+            TextOrNode::Text(t) => Some(t.clone()),
+            TextOrNode::Node { text } => Some(text.clone()?),
         }
     }
 }
