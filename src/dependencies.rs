@@ -1,7 +1,8 @@
-use serde::Deserialize;
 use crate::dependency::Dependency;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Dependencies {
-	pub dependency: Vec<Dependency>,
+    #[serde(rename = "dependency")]
+    pub dependency: Vec<Dependency>,
 }
