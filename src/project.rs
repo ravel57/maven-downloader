@@ -2,6 +2,7 @@ use crate::dependencies::Dependencies;
 use crate::dependency::Dependency;
 use crate::properties::Properties;
 use serde::Deserialize;
+use crate::dependency_management::DependencyManagement;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename = "project")] // корневой тег <project>
@@ -23,4 +24,7 @@ pub struct Project {
 
     #[serde(rename = "properties", default)]
     pub properties: Option<Properties>,
+
+    #[serde(rename = "dependencyManagement", default)]
+    pub dependency_management: Option<DependencyManagement>,
 }
